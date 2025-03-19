@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Matches</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #181818; color: white; text-align: center; margin: 0; padding: 0; }
+        .container { padding: 50px; }
+        .btn { padding: 15px 25px; font-size: 18px; margin: 10px; border: none; cursor: pointer; border-radius: 5px; }
+        .score-btn { background: #ff0000; color: white; }
+        .video-btn { background: #007bff; color: white; }
+        .server-options { display: none; margin-top: 20px; }
+        .server-btn { background: #28a745; color: white; display: block; margin: 10px auto; width: 200px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Live Matches</h1>
+        <button class="btn score-btn" onclick="openScore()">SCORE</button>
+        <button class="btn video-btn" onclick="toggleServers()">VIDEO</button>
+
+        <div class="server-options" id="serverOptions">
+            <button class="btn server-btn" onclick="playStream('https://example.com/server1.m3u8')">Server 1</button>
+            <button class="btn server-btn" onclick="playStream('https://example.com/server2.m3u8')">Server 2</button>
+            <button class="btn server-btn" onclick="playStream('https://example.com/server3.m3u8')">Server 3</button>
+        </div>
+    </div>
+
+    <script>
+        function openScore() {
+            window.open('https://crex.live/', '_blank');
+        }
+
+        function toggleServers() {
+            let servers = document.getElementById('serverOptions');
+            servers.style.display = servers.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function playStream(url) {
+            window.open(url, '_blank');
+        }
+    </script>
+
+</body>
+</html>
