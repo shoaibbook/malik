@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #181818; color: white; text-align: center; margin: 0; padding: 0; }
+        .video-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; }
+        .video-item { width: 300px; cursor: pointer; background: #222; padding: 10px; border-radius: 5px; position: relative; }
+        .video-item img { width: 100%; border-radius: 5px; }
+        .video-item:hover { background: #333; }
+        .search-box { margin: 20px; }
+        .search-box input { padding: 10px; width: 70%; font-size: 16px; border: none; border-radius: 5px; }
+        .search-box button { padding: 10px; font-size: 16px; cursor: pointer; border: none; background: #ff0000; color: white; border-radius: 5px; }
+        .duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.7); color: white; padding: 3px 6px; border-radius: 3px; font-size: 12px; }
+
+        /* نیچے بٹن رکھنے کے لیے */
+        .button-container {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .bottom-button {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background: #ff0000;
+            color: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Trending Videos</h1>
+
+    <div class="search-box">
+        <input type="text" id="searchQuery" placeholder="Search videos...">
+        <button onclick="searchVideos()">Search</button>
+    </div>
+
+    <div class="video-grid" id="videoGrid"></div>
+
+    <!-- نیچے دو بٹن -->
+    <div class="button-container">
+        <button class="bottom-button" onclick="openPage('https://shoaibbook.github.io/Live/')">Live Matches</button>
+        <button class="bottom-button" onclick="openPage('https://youtube.com')">YouTube</button>
+    </div>
+
+    <script>
+        let apiKey = 'AIzaSyAUpXh93AdX4q04wdhkZKsY6IFoAiEXVn8';
+
+        async function fetchVideos(query = '') {
+            let url = query 
+                ? `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=10&key=${apiKey}`
+                : `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=US&maxResults=10&key=${apiKey}`;
+
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+
+                if (data.error) {
+                    console.error("API Error:", data.error.message);
+                    alert("API Error: " + data.error.message);
+                    return;
+                }
+
+                let videoGrid = document.getElementById('videoGrid');
+                videoGrid.innerHTML = '';
+
+                let videoIds = data.items.map(video => query ? video.id.videoId : video.id).join(',');
+
+                // 🔹 Fetch video durations
+                let durationData = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`);
+                let durationJson = await durationData.json();
+                let durations = {};
+
+                durationJson.items.forEach(item => {
+                    durations[item.id] = formatDuration(item.contentDetails.duration);
+                });
+
+                data.items.forEach(video => {
+                    let videoId = query ? video.id.videoId : video.id;
+                    let title = video.snippet.title;
+                    let thumbnail = video.snippet.thumbnails.medium.url;
+                    let duration = durations[videoId] || "N/A";
+
+                    let videoElement = document.createElement('div');
+                    videoElement.classList.add('video-item');
+                    videoElement.innerHTML = `
+                        <img src="${thumbnail}" alt="${title}">
+                        <p>${title}</p>
+                        <span class="duration">${duration}</span>
+                    `;
+                    videoElement.onclick = () => {
+                        window.location.href = `player.html?videoId=${videoId}`;
+                    };
+                    videoGrid.appendChild(videoElement);
+                });
+            } catch (error) {
+                console.error('Error fetching videos:', error);
+                alert("Failed to load videos. Check console for details.");
+            }
+        }
+
+        function formatDuration(duration) {
+            let match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+            let hours = match[1] ? parseInt(match[1]) : 0;
+            let minutes = match[2] ? parseInt(match[2]) : 0;
+            let seconds = match[3] ? parseInt(match[3]) : 0;
+
+            return `${hours > 0 ? hours + ":" : ""}${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function searchVideos() {
+            let query = document.getElementById('searchQuery').value;
+            fetchVideos(query);
+        }
+
+        function openPage(url) {
+            window.location.href = url;
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchVideos);
+    </script>
+
+</body>
+</html>
